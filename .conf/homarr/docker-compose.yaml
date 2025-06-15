@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config:/app/data/configs
+      - ./icons:/app/public/icons
+      - ./data:/data
+    environment:
+      - TZ=Africa/Nairobi
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.homarr.rule=Host(`homarr.home`)"
+        - "traefik.http.services.homarr.loadbalancer.server.port=7575"
+
+networks:
+  traefik-public:
+    external: true
