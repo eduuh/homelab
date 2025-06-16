@@ -1,0 +1,70 @@
+version: "3.8"
+
+# Combined Docker Swarm Homelab Configuration
+# Includes: Traefik Proxy and Homarr Dashboard
+
+services:
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:latest
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker.swarmmode=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--accesslog=true"
+      - "--log.level=DEBUG"
+      - "--entrypoints.web.forwardedHeaders.insecure=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.${TAILSCALE_HOSTNAME:-homelab}`)"
+        - "traefik.http.routers.traefik-dashboard.service=api@internal"
+        - "traefik.http.routers.traefik-dashboard.entrypoints=web"
+
+  # Homarr Dashboard
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.conf/homarr/config:/app/data/configs
+      - ./.conf/homarr/icons:/app/public/icons
+      - ./.conf/homarr/data:/data
+    environment:
+      - TZ=Africa/Nairobi
+      - DOCKER_SOCKET=/var/run/docker.sock
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - traefik-public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager  # Run on a manager node for Docker Swarm access
+      restart_policy:
+        condition: any
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.homarr.rule=Host(`homarr.${TAILSCALE_HOSTNAME:-homelab}`)"
+        - "traefik.http.services.homarr.loadbalancer.server.port=7575"
+        - "traefik.http.routers.homarr.entrypoints=web"
+        - "traefik.http.routers.homarr-secure.rule=Host(`homarr.${TAILSCALE_HOSTNAME:-homelab}`)"
+        - "traefik.http.routers.homarr-secure.entrypoints=websecure"
+        - "traefik.http.routers.homarr-secure.tls=true"
+
+networks:
+  traefik-public:
+    external: true

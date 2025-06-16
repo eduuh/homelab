@@ -10,16 +10,28 @@ services:
       - ./data:/data
     environment:
       - TZ=Africa/Nairobi
+      # Enable Docker integration for better container monitoring
+      - DOCKER_SOCKET=/var/run/docker.sock
+      - DOCKER_HOST=unix:///var/run/docker.sock
     networks:
       - traefik-public
     deploy:
       replicas: 1
+      placement:
+        constraints:
+          - node.role == manager  # Run on a manager node for Docker Swarm access
       restart_policy:
         condition: any
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.homarr.rule=Host(`homarr.home`)"
+        # Use a domain that will work across your Tailnet
+        - "traefik.http.routers.homarr.rule=Host(`homarr.${TAILSCALE_HOSTNAME:-home}`)"
         - "traefik.http.services.homarr.loadbalancer.server.port=7575"
+        - "traefik.http.routers.homarr.entrypoints=web"
+        # Add secure route for HTTPS
+        - "traefik.http.routers.homarr-secure.rule=Host(`homarr.${TAILSCALE_HOSTNAME:-home}`)"
+        - "traefik.http.routers.homarr-secure.entrypoints=websecure"
+        - "traefik.http.routers.homarr-secure.tls=true"
 
 networks:
   traefik-public:

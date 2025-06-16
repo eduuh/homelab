@@ -27,6 +27,12 @@ docker swarm init
 
 op item get "docker-swarm" --vault "dev" --field "password"
 
+## docker nodes
+
+```
+docker node ls
+```
+
 ### Shown running container
 
 ```

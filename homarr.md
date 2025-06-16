@@ -1,16 +1,40 @@
+# Homarr Dashboard
+
+Homarr is now part of the unified homelab stack and is managed through the `homelab.sh` script.
+
+## Deployment
+
+To deploy Homarr (as part of the homelab stack):
+
+```bash
+./homelab.sh deploy
+```
+
+Homarr will be accessible at: http://homarr.[hostname]
+
 ## Updating Homarr
 
+To update Homarr to the latest version:
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/ajnart/homarr:latest
+
+# Redeploy the stack with the new image
+./homelab.sh deploy
 ```
-docker stack deploy -c docker-compose.yaml homarr
 
+## Volume Locations
+
+Homarr data is stored in the following locations:
+- Configuration: `./.conf/homarr/config`
+- Icons: `./.conf/homarr/icons`
+- General data: `./.conf/homarr/data`
+
+## Removing Homarr
+
+Homarr can be removed as part of the homelab stack:
+
+```bash
+./homelab.sh remove
 ```
-
-To update, navigate to the directory with the docker-compose.yaml located.
-Stop Homarr using docker compose down
-Pull the newest image of Homarr using docker compose pull
-Start Homarr again using docker compose up -d (-d for detached mode - start in background)
-Delete the old image using docker image prune (Warning: this also removes you other unused images - not just Homarr)
-
-## Re-deploy
-
-docker stack rm homarr
