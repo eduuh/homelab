@@ -1,0 +1,36 @@
+{
+  "default": {
+    "name": "Main Dashboard",
+    "tiles": [
+      {
+        "id": "portainer",
+        "type": "app",
+        "name": "Portainer",
+        "url": "http://localhost:9000",
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/portainer.png"
+      },
+      {
+        "id": "homarr",
+        "type": "app",
+        "name": "Homarr",
+        "url": "http://localhost:7575",
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/home-assistant.png"
+      },
+      {
+        "id": "netalertx",
+        "type": "app",
+        "name": "NetAlertX",
+        "url": "http://localhost:8840",
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/uptimerobot.png"
+      },
+      {
+        "id": "uptimekuma",
+        "type": "app",
+        "name": "Uptime Kuma",
+        "url": "http://localhost:3001",
+        "icon": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/uptime-kuma.png"
+      }
+    ]
+  }
+}
+

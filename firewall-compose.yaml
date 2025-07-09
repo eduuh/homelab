@@ -1,0 +1,120 @@
+services:
+
+  it-tools:
+    image: corentinth/it-tools
+    container_name: it-tools
+    hostname: it-tools
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    tty: true
+    networks:
+      - proxy-net
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    hostname: portainer
+    restart: always
+    ports:
+      - "9000:9000"
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - proxy-net
+
+  #---------------------------------------------------------------------#
+  #     Homarr - A simple, yet powerful dashboard for your server.      #
+  #---------------------------------------------------------------------#
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    hostname: homarr
+    restart: unless-stopped
+    environment:
+      - SECRET_ENCRYPTION_KEY=de35903ac5fb6632102e5ff50bbceb5a9c55e74a9489a8ccf641079ac9b6152e      
+    volumes:
+      - ./homarr/appdata:/appdata
+    ports:
+      - '7575:7575'
+    networks:
+      - proxy-net
+
+  netalertx:
+    image: jokobsk/netalertx:latest
+    container_name: netalertx
+    restart: always
+    network_mode: host  # required for LAN scanning
+    volumes:
+      - ./netalertx/config:/app/config
+      - ./netalertx/db:/app/db
+    environment:
+      - TZ=Africa/Nairobi
+      - PUID=1000
+      - PGID=1000
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    hostname: uptime-kuma
+    restart: always
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./uptime-kuma:/app/data
+    environment:
+      - TZ=Africa/Nairobi
+    networks:
+      - proxy-net
+
+  #---------------------------------------------------------------------#
+  #     Nginx Proxy Manager - HTTPS proxy and SSL certificate manager   #
+  #---------------------------------------------------------------------#
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'      # HTTP port
+      - '443:443'    # HTTPS port
+      - '81:81'      # Admin UI
+    volumes:
+      - ./nginx-proxy-manager/data:/data
+      - ./nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+      - ./nginx-proxy-manager/custom:/etc/nginx/custom  # Custom Nginx configurations
+    environment:
+      - TZ=Africa/Nairobi
+      - DB_MYSQL_HOST=npm-db
+      - DB_MYSQL_PORT=3306
+      - DB_MYSQL_USER=npm
+      - DB_MYSQL_PASSWORD=npm-password
+      - DB_MYSQL_NAME=npm
+    depends_on:
+      - npm-db
+    networks:
+      - proxy-net
+
+  npm-db:
+    image: 'jc21/mariadb-aria:latest'
+    container_name: npm-db
+    hostname: npm-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=npm-root-password
+      - MYSQL_DATABASE=npm
+      - MYSQL_USER=npm
+      - MYSQL_PASSWORD=npm-password
+    volumes:
+      - ./nginx-proxy-manager/db-data:/var/lib/mysql
+    networks:
+      - proxy-net
+
+volumes:
+  portainer_data:
+
+networks:
+  proxy-net:
+    driver: bridge
+

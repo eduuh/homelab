@@ -1,0 +1,5 @@
+netalertx/config/devices.csv
+netalertsx/db/
+homarr/appdata/db.sqlite
+homarr/appdata/db/
+homarr/appdata/redis/dump.rdb
